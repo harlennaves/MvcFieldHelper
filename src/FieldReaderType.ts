@@ -1,7 +1,9 @@
 namespace Mvc {
   export enum FieldReaderType {
     Input = "InputFieldReader",
-    Kendo = "KendoFieldReader",
-    CheckBox = "CheckBoxFieldReader"
+    CheckBox = "CheckBoxFieldReader",
+    KendoDropDown = "KendoDropDownListFieldReader",
+    KendoDatePicker = "KendoDatePickerFieldReader",
+    KendoNumericTextBox = "KendoNumericTextBoxFieldReader"
   };
 }
