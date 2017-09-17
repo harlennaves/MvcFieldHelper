@@ -10,15 +10,18 @@ namespace Mvc {
       this.componentName = componentName;
     };
 
-    getModelValue(mapping: FieldMappingModel, model: any) {
+    getModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
       var kendoElement = element.data(this.componentName);
       if (kendoElement == null) return;
-      kendoElement.value(model[mapping.modelProperty]);
+      var value = model[mapping.modelProperty];
+      if (format != null)
+        value = format.format(value);
+      kendoElement.value(value);
     };
 
-    setModelValue(mapping: FieldMappingModel, model: any) {
+    setModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
       var kendoElement = element.data(this.componentName);

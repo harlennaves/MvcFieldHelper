@@ -4,7 +4,7 @@
 
 namespace Mvc {
   export class CheckBoxFieldReader implements IFieldReader {
-    getModelValue(mapping: FieldMappingModel, model: any) {
+    getModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
       if (model[mapping.modelProperty] == null) return;
@@ -12,7 +12,7 @@ namespace Mvc {
       element.prop("checked", model[mapping.modelProperty]);
     };
 
-    setModelValue(mapping: FieldMappingModel, model: any) {
+    setModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
 

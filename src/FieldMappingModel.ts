@@ -1,5 +1,6 @@
 /// <reference path="IFieldReader.ts"/>
 /// <reference path="FieldReaderType.ts"/>
+/// <reference path="FieldFormatModel.ts"/>
 
 namespace Mvc {
   export class FieldMappingModel {
@@ -7,6 +8,7 @@ namespace Mvc {
     public modelProperty : string;
     public modelType : string;
     public reader : FieldReaderType;
+    public format : FieldFormatModel;
 
     constructor(model : any) {
         this.fieldId = model.fieldId;
@@ -23,6 +25,9 @@ namespace Mvc {
           this.modelType = "string";
         if (this.reader == null)
           this.reader = FieldReaderType.Input;
+
+        if (model.format != null)
+          this.format = new Mvc.FieldFormatModel(model.format);
     };
 
 
