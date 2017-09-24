@@ -19,7 +19,7 @@ namespace Mvc {
       return this.getDate(value);
     }
 
-    format(value : any) : string {
+    format(value : any, format : string) : string {
       if (value == null) return "";
       var date;
       if (value instanceof Date)
@@ -29,7 +29,7 @@ namespace Mvc {
 
       if (date == null || !(date instanceof Date)) return "";
 
-      return date.format(this.defaultFormat);
+      return date.format(format == null ? this.defaultFormat : format);
     }
   }
 }

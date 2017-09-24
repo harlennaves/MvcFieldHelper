@@ -23,11 +23,13 @@ namespace Mvc {
           var modelProperty = el.attributes["data-property"];
           var readerProperty = el.attributes["data-reader"];
           var formatterProperty = el.attributes["data-formatter"];
+          var formatProperty = el.attributes["data-format"];
           this.mapping.push(new FieldMappingModel({
             fieldId : el.id,
             modelProperty : modelProperty == null ? el.id : modelProperty.value,
             reader : readerProperty == null ? null : FieldReaderType[readerProperty.value],
-            formatter : formatterProperty == null ? null : formatterProperty.value
+            formatter : formatterProperty == null ? null : formatterProperty.value,
+            format : formatProperty == null ? null : formatProperty.value
           }));
         }
     };

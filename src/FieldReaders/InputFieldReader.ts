@@ -11,8 +11,8 @@ namespace Mvc {
       if (model[mapping.modelProperty] == null) return;
 
       var value = model[mapping.modelProperty];
-      
-      element.val(format == null ? value : format.format(value));
+
+      element.val(format == null ? value : format.format(value, mapping.formatter == null ? null : mapping.formatter.format));
     };
 
     setModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {

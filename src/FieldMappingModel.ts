@@ -27,7 +27,7 @@ namespace Mvc {
           this.reader = FieldReaderType.Input;
 
         if (model.formatter != null)
-          this.formatter = new Mvc.FieldFormatModel({ type : model.formatter } );
+          this.formatter = new Mvc.FieldFormatModel({ type : model.formatter, format : model.format } );
     };
 
 

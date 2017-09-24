@@ -1,6 +1,6 @@
 namespace Mvc {
   export interface IFieldFormatter {
-      format(value : any) : string;
+      format(value : any, format : string) : string;
 
       getValue(value : any) : any;
   };

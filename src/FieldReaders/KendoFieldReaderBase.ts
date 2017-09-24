@@ -17,7 +17,7 @@ namespace Mvc {
       if (kendoElement == null) return;
       var value = model[mapping.modelProperty];
       if (format != null)
-        value = format.format(value);
+        value = format.format(value, mapping.formatter == null ? null : mapping.formatter.format);
       kendoElement.value(value);
     };
 
