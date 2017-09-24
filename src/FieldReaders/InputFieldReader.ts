@@ -11,16 +11,15 @@ namespace Mvc {
       if (model[mapping.modelProperty] == null) return;
 
       var value = model[mapping.modelProperty];
-      if (format != null)
-        value = format.format(value);
-      element.val(value);
+      
+      element.val(format == null ? value : format.format(value));
     };
 
     setModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
 
-      model[mapping.modelProperty] = element.val();
+      model[mapping.modelProperty] = format == null ? element.val() : format.getValue(element.val());
     }
   };
 }

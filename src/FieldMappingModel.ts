@@ -8,7 +8,7 @@ namespace Mvc {
     public modelProperty : string;
     public modelType : string;
     public reader : FieldReaderType;
-    public format : FieldFormatModel;
+    public formatter : FieldFormatModel;
 
     constructor(model : any) {
         this.fieldId = model.fieldId;
@@ -26,8 +26,8 @@ namespace Mvc {
         if (this.reader == null)
           this.reader = FieldReaderType.Input;
 
-        if (model.format != null)
-          this.format = new Mvc.FieldFormatModel(model.format);
+        if (model.formatter != null)
+          this.formatter = new Mvc.FieldFormatModel({ type : model.formatter } );
     };
 
 

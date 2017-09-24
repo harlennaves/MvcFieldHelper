@@ -2,13 +2,17 @@
   <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="../dist/MvcAjaxHelper.js"></script>
+    <script src="date.format.js"></script>
   </head>
   <body>
-    <input type="text" id="textBoxName" />
+    <input type="text" id="textBoxName" data-Property="Name" />
     <br />
-    <input type="text" id="textBoxEmail" />
+    <input type="text" id="textBoxEmail" data-Property="Email"/>
     <p>
-      <input type="checkbox" id="checkboxSend" /> <label>Send</label>
+      <input type="checkbox" id="checkboxSend" data-Property="Send" data-reader="CheckBox"/> <label>Send</label>
+    </p>
+    <p>
+      <input type="text" id="textBoxSendDate" data-Property="SendDate" data-formatter="Date"/>
     </p>
     <div>
       <input type="button" value="Enviar" onclick="mvc.setModel();" />

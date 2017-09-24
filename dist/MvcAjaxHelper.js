@@ -73,8 +73,8 @@ var Mvc;
                 this.modelType = "string";
             if (this.reader == null)
                 this.reader = Mvc.FieldReaderType.Input;
-            if (model.format != null)
-                this.format = new Mvc.FieldFormatModel(model.format);
+            if (model.formatter != null)
+                this.formatter = new Mvc.FieldFormatModel({ type: model.formatter });
         }
         ;
         return FieldMappingModel;
@@ -87,23 +87,34 @@ var Mvc;
 /// <reference path="FieldReaderType.ts"/>
 /// <reference path="IFieldFormatter.ts"/>
 /// <reference path="FieldFormatModel.ts"/>
+/// <reference path="definitions/jquery.d.ts"/>
 var Mvc;
 (function (Mvc) {
     var FieldHelper = /** @class */ (function () {
-        function FieldHelper(mapping, model) {
+        function FieldHelper(model) {
             this.Model = model;
             if (this.Model == null)
                 this.Model = {};
             this.mapping = [];
             this.readers = {};
             this.formatters = {};
-            this.initializeMapping(mapping);
+            this.initializeMapping();
         }
-        FieldHelper.prototype.initializeMapping = function (mapping) {
-            var mappingLength = mapping.length;
-            for (var index = 0; index < mappingLength; index++) {
-                var item = mapping[index];
-                this.mapping.push(new Mvc.FieldMappingModel(item));
+        FieldHelper.prototype.initializeMapping = function () {
+            var elements = $("[data-Property]");
+            if (elements == null || elements.length == 0)
+                return;
+            for (var index = 0; index < elements.length; index++) {
+                var el = elements[index];
+                var modelProperty = el.attributes["data-property"];
+                var readerProperty = el.attributes["data-reader"];
+                var formatterProperty = el.attributes["data-formatter"];
+                this.mapping.push(new Mvc.FieldMappingModel({
+                    fieldId: el.id,
+                    modelProperty: modelProperty == null ? el.id : modelProperty.value,
+                    reader: readerProperty == null ? null : Mvc.FieldReaderType[readerProperty.value],
+                    formatter: formatterProperty == null ? null : formatterProperty.value
+                }));
             }
         };
         ;
@@ -120,7 +131,7 @@ var Mvc;
                 return null;
             var typeName = format.type.toString();
             if (this.formatters[typeName] == null) {
-                this.formatters[typeName] = eval("new Mvc." + typeName + "()");
+                this.formatters[typeName] = eval("new Mvc." + Mvc.FieldFormatterType[typeName] + "()");
             }
             return this.formatters[typeName];
         };
@@ -129,7 +140,7 @@ var Mvc;
             var mappingLength = this.mapping.length;
             for (var index = 0; index < mappingLength; index++) {
                 var mappingField = this.mapping[index];
-                this.getFieldReader(mappingField.reader).setModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.format));
+                this.getFieldReader(mappingField.reader).setModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
             }
         };
         ;
@@ -137,7 +148,7 @@ var Mvc;
             var mappingLength = this.mapping.length;
             for (var index = 0; index < mappingLength; index++) {
                 var mappingField = this.mapping[index];
-                this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.format));
+                this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
             }
         };
         ;
@@ -154,6 +165,42 @@ var Mvc;
     }());
     Mvc.FieldHelper = FieldHelper;
     ;
+})(Mvc || (Mvc = {}));
+/// <reference path="../IFieldFormatter.ts"/>
+var Mvc;
+(function (Mvc) {
+    var DateFormatter = /** @class */ (function () {
+        function DateFormatter() {
+            this.defaultFormat = "dd/mm/yyyy";
+        }
+        DateFormatter.prototype.getDate = function (s) {
+            if (s.indexOf("Date") != -1)
+                return new Date(parseFloat(/Date\(([^)]+)\)/.exec(s)[1]));
+            if (s.indexOf("/") != -1) {
+                var dateParts = s.split("/");
+                return new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
+            }
+            return null;
+        };
+        ;
+        DateFormatter.prototype.getValue = function (value) {
+            return this.getDate(value);
+        };
+        DateFormatter.prototype.format = function (value) {
+            if (value == null)
+                return "";
+            var date;
+            if (value instanceof Date)
+                date = value;
+            else
+                date = this.getDate(value.toString());
+            if (date == null || !(date instanceof Date))
+                return "";
+            return date.format(this.defaultFormat);
+        };
+        return DateFormatter;
+    }());
+    Mvc.DateFormatter = DateFormatter;
 })(Mvc || (Mvc = {}));
 /// <reference path="../IFieldReader.ts"/>
 /// <reference path="../FieldMappingModel.ts"/>
@@ -197,16 +244,14 @@ var Mvc;
             if (model[mapping.modelProperty] == null)
                 return;
             var value = model[mapping.modelProperty];
-            if (format != null)
-                value = format.format(value);
-            element.val(value);
+            element.val(format == null ? value : format.format(value));
         };
         ;
         InputFieldReader.prototype.setModelValue = function (mapping, model, format) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
-            model[mapping.modelProperty] = element.val();
+            model[mapping.modelProperty] = format == null ? element.val() : format.getValue(element.val());
         };
         return InputFieldReader;
     }());
@@ -285,18 +330,4 @@ var Mvc;
         return KendoNumericTextBoxFieldReader;
     }(Mvc.KendoFieldReaderBase));
     Mvc.KendoNumericTextBoxFieldReader = KendoNumericTextBoxFieldReader;
-})(Mvc || (Mvc = {}));
-/// <reference path="../IFieldFormatter.ts"/>
-var Mvc;
-(function (Mvc) {
-    var DateFormatter = /** @class */ (function () {
-        function DateFormatter() {
-            this.defaultFormat = "dd/mm/yyyy";
-        }
-        DateFormatter.prototype.format = function (value) {
-            return "";
-        };
-        return DateFormatter;
-    }());
-    Mvc.DateFormatter = DateFormatter;
 })(Mvc || (Mvc = {}));

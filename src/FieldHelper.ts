@@ -3,6 +3,7 @@
 /// <reference path="FieldReaderType.ts"/>
 /// <reference path="IFieldFormatter.ts"/>
 /// <reference path="FieldFormatModel.ts"/>
+/// <reference path="definitions/jquery.d.ts"/>
 
 namespace Mvc {
 
@@ -13,22 +14,32 @@ namespace Mvc {
     private readers : any;
     private formatters : any;
 
-    private initializeMapping(mapping : Array<any>) {
-      var mappingLength = mapping.length;
-      for (var index = 0; index < mappingLength; index++) {
-        var item = mapping[index];
-        this.mapping.push(new FieldMappingModel(item));
-      }
+    private initializeMapping() {
+        var elements = $("[data-Property]");
+        if (elements == null || elements.length == 0) return;
+
+        for (var index = 0; index < elements.length; index++) {
+          var el = elements[index];
+          var modelProperty = el.attributes["data-property"];
+          var readerProperty = el.attributes["data-reader"];
+          var formatterProperty = el.attributes["data-formatter"];
+          this.mapping.push(new FieldMappingModel({
+            fieldId : el.id,
+            modelProperty : modelProperty == null ? el.id : modelProperty.value,
+            reader : readerProperty == null ? null : FieldReaderType[readerProperty.value],
+            formatter : formatterProperty == null ? null : formatterProperty.value
+          }));
+        }
     };
 
-    constructor(mapping: Array<any>,  model : any) {
+    constructor(model : any) {
       this.Model = model;
       if (this.Model == null)
         this.Model = {};
       this.mapping = [];
       this.readers = {};
       this.formatters = {};
-      this.initializeMapping(mapping);
+      this.initializeMapping();
     };
 
     private getFieldReader(type : FieldReaderType) : IFieldReader {
@@ -43,7 +54,7 @@ namespace Mvc {
 
       var typeName = format.type.toString();
       if (this.formatters[typeName] == null) {
-        this.formatters[typeName] = eval("new Mvc." + typeName + "()");
+        this.formatters[typeName] = eval("new Mvc." + FieldFormatterType[typeName] + "()");
       }
       return this.formatters[typeName] as IFieldFormatter;
     };
@@ -53,7 +64,7 @@ namespace Mvc {
       var mappingLength = this.mapping.length;
       for (var index = 0; index < mappingLength; index++) {
         var mappingField = this.mapping[index];
-        this.getFieldReader(mappingField.reader).setModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.format));
+        this.getFieldReader(mappingField.reader).setModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
       }
     };
 
@@ -61,7 +72,7 @@ namespace Mvc {
       var mappingLength = this.mapping.length;
       for (var index = 0; index < mappingLength; index++) {
         var mappingField = this.mapping[index];
-        this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.format));
+        this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
       }
     };
 
