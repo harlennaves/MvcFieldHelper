@@ -36,11 +36,6 @@ var Mvc;
 (function (Mvc) {
     ;
 })(Mvc || (Mvc = {}));
-/// <reference path="IFieldFormatter.ts"/>
-var Mvc;
-(function (Mvc) {
-    ;
-})(Mvc || (Mvc = {}));
 var Mvc;
 (function (Mvc) {
     var FieldReaderType;
@@ -82,12 +77,18 @@ var Mvc;
     Mvc.FieldMappingModel = FieldMappingModel;
     ;
 })(Mvc || (Mvc = {}));
+/// <reference path="IFieldFormatter.ts"/>
+/// <reference path="FieldMappingModel.ts"/>
+var Mvc;
+(function (Mvc) {
+    ;
+})(Mvc || (Mvc = {}));
 /// <reference path="IFieldReader.ts"/>
 /// <reference path="FieldMappingModel.ts"/>
 /// <reference path="FieldReaderType.ts"/>
 /// <reference path="IFieldFormatter.ts"/>
 /// <reference path="FieldFormatModel.ts"/>
-/// <reference path="definitions/jquery.d.ts"/>
+/// <reference path="references.ts"/>
 var Mvc;
 (function (Mvc) {
     var FieldHelper = /** @class */ (function () {
@@ -170,7 +171,7 @@ var Mvc;
 })(Mvc || (Mvc = {}));
 /// <reference path="../IFieldReader.ts"/>
 /// <reference path="../FieldMappingModel.ts"/>
-/// <reference path="../definitions/jquery.d.ts"/>
+/// <reference path="../references.ts"/>
 var Mvc;
 (function (Mvc) {
     var CheckBoxFieldReader = /** @class */ (function () {
@@ -196,8 +197,8 @@ var Mvc;
     Mvc.CheckBoxFieldReader = CheckBoxFieldReader;
 })(Mvc || (Mvc = {}));
 /// <reference path="../IFieldReader.ts"/>
-/// <reference path="../definitions/jquery.d.ts"/>
 /// <reference path="../FieldMappingModel.ts"/>
+/// <reference path="../references.ts"/>
 var Mvc;
 (function (Mvc) {
     var InputFieldReader = /** @class */ (function () {
@@ -226,7 +227,7 @@ var Mvc;
 })(Mvc || (Mvc = {}));
 /// <reference path="../IFieldReader.ts"/>
 /// <reference path="../FieldMappingModel.ts"/>
-/// <reference path="../definitions/jquery.d.ts"/>
+/// <reference path="../references.ts"/>
 var Mvc;
 (function (Mvc) {
     var KendoFieldReaderBase = /** @class */ (function () {

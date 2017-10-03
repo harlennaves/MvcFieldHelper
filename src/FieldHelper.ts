@@ -3,7 +3,8 @@
 /// <reference path="FieldReaderType.ts"/>
 /// <reference path="IFieldFormatter.ts"/>
 /// <reference path="FieldFormatModel.ts"/>
-/// <reference path="definitions/jquery.d.ts"/>
+/// <reference path="HttpAjax.ts"/>
+/// <reference path="references.ts"/>
 
 namespace Mvc {
 
@@ -13,23 +14,26 @@ namespace Mvc {
     private mapping: Array<FieldMappingModel>;
     private readers : any;
     private formatters : any;
+    private http : HttpAjax;
 
     private initializeMapping() {
         var elements = $("[data-Property]");
         if (elements == null || elements.length == 0) return;
 
         for (var index = 0; index < elements.length; index++) {
-          var el = elements[index];
+          var el = elements[index] as any;
           var modelProperty = el.attributes["data-property"];
           var readerProperty = el.attributes["data-reader"];
           var formatterProperty = el.attributes["data-formatter"];
           var formatProperty = el.attributes["data-format"];
+          var readOnly = el.attributes["data-readonly"];
           this.mapping.push(new FieldMappingModel({
             fieldId : el.id,
             modelProperty : modelProperty == null ? el.id : modelProperty.value,
             reader : readerProperty == null ? null : FieldReaderType[readerProperty.value],
             formatter : formatterProperty == null ? null : formatterProperty.value,
-            format : formatProperty == null ? null : formatProperty.value
+            format : formatProperty == null ? null : formatProperty.value,
+            readOnly : readOnly == null ? false : readOnly.value
           }));
         }
     };
@@ -42,6 +46,7 @@ namespace Mvc {
       this.readers = {};
       this.formatters = {};
       this.initializeMapping();
+      this.http = new HttpAjax();
     };
 
     private getFieldReader(type : FieldReaderType) : IFieldReader {
@@ -66,6 +71,7 @@ namespace Mvc {
       var mappingLength = this.mapping.length;
       for (var index = 0; index < mappingLength; index++) {
         var mappingField = this.mapping[index];
+        if (mappingField.readOnly) continue;
         this.getFieldReader(mappingField.reader).setModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
       }
     };
@@ -87,5 +93,9 @@ namespace Mvc {
       this.getModel();
     };
 
+    post(successCallback : (result : any) => any, errorCallback : (result : any) => void) {
+      this.setModel();
+      this.http.post(this.Model, successCallback, errorCallback);
+    };
   };
 }

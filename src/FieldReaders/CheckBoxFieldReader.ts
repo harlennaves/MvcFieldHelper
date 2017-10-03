@@ -1,6 +1,6 @@
 /// <reference path="../IFieldReader.ts"/>
 /// <reference path="../FieldMappingModel.ts"/>
-/// <reference path="../definitions/jquery.d.ts"/>
+/// <reference path="../references.ts"/>
 
 namespace Mvc {
   export class CheckBoxFieldReader implements IFieldReader {

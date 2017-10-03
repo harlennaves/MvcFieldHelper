@@ -1,4 +1,5 @@
 /// <reference path="IFieldFormatter.ts"/>
+/// <reference path="FieldMappingModel.ts"/>
 
 namespace Mvc {
 
