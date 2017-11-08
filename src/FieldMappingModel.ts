@@ -10,6 +10,7 @@ namespace Mvc {
     public reader : FieldReaderType;
     public formatter : FieldFormatModel;
     public readOnly : boolean;
+    public group : string;
 
     constructor(model : any) {
         this.fieldId = model.fieldId;
@@ -33,6 +34,8 @@ namespace Mvc {
         if (model.readOnly != null)
           this.readOnly = model.readOnly as boolean;
 
+        if (model.group != null)
+          this.group = model.group;
     };
 
 

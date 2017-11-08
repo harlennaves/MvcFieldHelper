@@ -27,13 +27,15 @@ namespace Mvc {
           var formatterProperty = el.attributes["data-formatter"];
           var formatProperty = el.attributes["data-format"];
           var readOnly = el.attributes["data-readonly"];
+          var group = el.attributes["data-group"];
           this.mapping.push(new FieldMappingModel({
             fieldId : el.id,
             modelProperty : modelProperty == null ? el.id : modelProperty.value,
             reader : readerProperty == null ? null : FieldReaderType[readerProperty.value],
             formatter : formatterProperty == null ? null : formatterProperty.value,
             format : formatProperty == null ? null : formatProperty.value,
-            readOnly : readOnly == null ? false : readOnly.value
+            readOnly : readOnly == null ? false : readOnly.value,
+            group : group == null ? null :group.value
           }));
         }
     };
@@ -67,33 +69,36 @@ namespace Mvc {
     };
 
 
-    setModel() {
-      var mappingLength = this.mapping.length;
+    setModel(group? : string) {
+      var groupFields = group == null || group == "" ? this.mapping : this.mapping.filter(mapping => mapping.group == group);
+      var mappingLength = groupFields.length;
       for (var index = 0; index < mappingLength; index++) {
-        var mappingField = this.mapping[index];
+        var mappingField = groupFields[index];
         if (mappingField.readOnly) continue;
         this.getFieldReader(mappingField.reader).setModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
       }
     };
 
-    getModel() {
-      var mappingLength = this.mapping.length;
+    getModel(group? : string) {
+      var groupFields = group == null || group == "" ? this.mapping : this.mapping.filter(mapping => mapping.group == group);
+      var mappingLength = groupFields.length;
       for (var index = 0; index < mappingLength; index++) {
-        var mappingField = this.mapping[index];
+        var mappingField = groupFields[index];
         this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
       }
     };
 
-    clearModel() {
-      var mappingLength = this.mapping.length;
+    clearModel(group? : string) {
+      var groupFields = group == null || group == "" ? this.mapping : this.mapping.filter(mapping => mapping.group == group);
+      var mappingLength = groupFields.length;
       for (var index = 0; index < mappingLength; index++) {
-        var mappingField = this.mapping[index];
+        var mappingField = groupFields[index];
         this.Model[mappingField.modelProperty] = "";
       }
-      this.getModel();
+      this.getModel(group);
     };
 
-    post(successCallback : (result : any) => any, errorCallback : (result : any) => void) {
+    post(group? : string, successCallback : (result : any) => any, errorCallback : (result : any) => void) {
       this.setModel();
       this.http.post(this.Model, successCallback, errorCallback);
     };
