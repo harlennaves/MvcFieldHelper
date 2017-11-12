@@ -17,5 +17,11 @@ function minifyCompilation() {
   gulp.src(tsConfig.destinationFolder + tsConfig.destinationFile).pipe(uglify()).pipe(gulp.dest(tsConfig.destinationFolder + "release/"));
 }
 
+function typescriptCompileDef() {
+  var result = gulp.src(tsConfig.source).pipe(typescript({noImplicitAny : true, declaration : true}));
+  return result.dts.pipe(gulp.dest(tsConfig.destinationFolder + "def/"));
+}
+
 gulp.task("typescript:debug", typescriptCompile);
 gulp.task("typescript:release", minifyCompilation);
+gulp.task("typescript:def", typescriptCompileDef);

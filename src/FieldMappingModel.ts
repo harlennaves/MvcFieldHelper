@@ -26,7 +26,7 @@ namespace Mvc {
         if (this.modelType == null)
           this.modelType = "string";
         if (this.reader == null)
-          this.reader = FieldReaderType.Input;
+          this.reader = (kendo == null || kendo.widgetInstance($("#" + this.fieldId), kendo.ui) == undefined) ? FieldReaderType.Input : FieldReaderType.Kendo;
 
         if (model.formatter != null)
           this.formatter = new Mvc.FieldFormatModel({ type : model.formatter, format : model.format } );
@@ -37,7 +37,5 @@ namespace Mvc {
         if (model.group != null)
           this.group = model.group;
     };
-
-
   };
 }

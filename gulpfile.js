@@ -2,4 +2,4 @@ var gulp = require("gulp");
 var requireDir = require("require-dir");
 requireDir("./gulp-tasks");
 
-gulp.task("compile", ["typescript:debug", "typescript:release"]);
+gulp.task("compile", ["typescript:debug", "typescript:release", "typescript:def"]);

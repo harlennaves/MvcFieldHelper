@@ -98,9 +98,9 @@ namespace Mvc {
       this.getModel(group);
     };
 
-    post(group? : string, successCallback : (result : any) => any, errorCallback : (result : any) => void) {
-      this.setModel();
-      this.http.post(this.Model, successCallback, errorCallback);
+    post(controller : string, method : string, group : string, successCallback : (result : any) => any, errorCallback : (result : any) => void) {
+      this.setModel(group);
+      this.http.post(controller, method, this.Model, successCallback, errorCallback);
     };
   };
 }

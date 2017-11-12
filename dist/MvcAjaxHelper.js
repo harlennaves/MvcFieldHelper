@@ -1,13 +1,3 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var Mvc;
 (function (Mvc) {
     var FieldFormatterType;
@@ -42,9 +32,7 @@ var Mvc;
     (function (FieldReaderType) {
         FieldReaderType["Input"] = "InputFieldReader";
         FieldReaderType["CheckBox"] = "CheckBoxFieldReader";
-        FieldReaderType["KendoDropDown"] = "KendoDropDownListFieldReader";
-        FieldReaderType["KendoDatePicker"] = "KendoDatePickerFieldReader";
-        FieldReaderType["KendoNumericTextBox"] = "KendoNumericTextBoxFieldReader";
+        FieldReaderType["Kendo"] = "KendoFieldReader";
     })(FieldReaderType = Mvc.FieldReaderType || (Mvc.FieldReaderType = {}));
     ;
 })(Mvc || (Mvc = {}));
@@ -67,9 +55,13 @@ var Mvc;
             if (this.modelType == null)
                 this.modelType = "string";
             if (this.reader == null)
-                this.reader = Mvc.FieldReaderType.Input;
+                this.reader = (kendo == null || kendo.widgetInstance($("#" + this.fieldId), kendo.ui) == undefined) ? Mvc.FieldReaderType.Input : Mvc.FieldReaderType.Kendo;
             if (model.formatter != null)
                 this.formatter = new Mvc.FieldFormatModel({ type: model.formatter, format: model.format });
+            if (model.readOnly != null)
+                this.readOnly = model.readOnly;
+            if (model.group != null)
+                this.group = model.group;
         }
         ;
         return FieldMappingModel;
@@ -83,11 +75,51 @@ var Mvc;
 (function (Mvc) {
     ;
 })(Mvc || (Mvc = {}));
+/// <reference path="references.ts"/>
+var Mvc;
+(function (Mvc) {
+    var HttpAjax = /** @class */ (function () {
+        function HttpAjax() {
+            this.initializePath();
+        }
+        HttpAjax.prototype.initializePath = function () {
+            if (window.location.pathname == "/") {
+                this.hostBasePath = "/";
+                return;
+            }
+            var pathPieces = window.location.pathname.split("/");
+            if (pathPieces.length < 2) {
+                this.hostBasePath = "/";
+                return;
+            }
+            this.hostBasePath = pathPieces[1] + "/";
+        };
+        HttpAjax.prototype.post = function (controller, method, data, successCallback, errorCallback) {
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            var serializedData = token == null || token == ""
+                ? $.param(data)
+                : $.param($.extend({ __RequestVerificationToken: token }, data));
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                data: serializedData,
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                success: successCallback,
+                error: errorCallback,
+                url: this.hostBasePath + controller + "/" + method
+            });
+        };
+        ;
+        return HttpAjax;
+    }());
+    Mvc.HttpAjax = HttpAjax;
+})(Mvc || (Mvc = {}));
 /// <reference path="IFieldReader.ts"/>
 /// <reference path="FieldMappingModel.ts"/>
 /// <reference path="FieldReaderType.ts"/>
 /// <reference path="IFieldFormatter.ts"/>
 /// <reference path="FieldFormatModel.ts"/>
+/// <reference path="HttpAjax.ts"/>
 /// <reference path="references.ts"/>
 var Mvc;
 (function (Mvc) {
@@ -100,6 +132,7 @@ var Mvc;
             this.readers = {};
             this.formatters = {};
             this.initializeMapping();
+            this.http = new Mvc.HttpAjax();
         }
         FieldHelper.prototype.initializeMapping = function () {
             var elements = $("[data-Property]");
@@ -111,12 +144,16 @@ var Mvc;
                 var readerProperty = el.attributes["data-reader"];
                 var formatterProperty = el.attributes["data-formatter"];
                 var formatProperty = el.attributes["data-format"];
+                var readOnly = el.attributes["data-readonly"];
+                var group = el.attributes["data-group"];
                 this.mapping.push(new Mvc.FieldMappingModel({
                     fieldId: el.id,
                     modelProperty: modelProperty == null ? el.id : modelProperty.value,
                     reader: readerProperty == null ? null : Mvc.FieldReaderType[readerProperty.value],
                     formatter: formatterProperty == null ? null : formatterProperty.value,
-                    format: formatProperty == null ? null : formatProperty.value
+                    format: formatProperty == null ? null : formatProperty.value,
+                    readOnly: readOnly == null ? false : readOnly.value,
+                    group: group == null ? null : group.value
                 }));
             }
         };
@@ -139,29 +176,39 @@ var Mvc;
             return this.formatters[typeName];
         };
         ;
-        FieldHelper.prototype.setModel = function () {
-            var mappingLength = this.mapping.length;
+        FieldHelper.prototype.setModel = function (group) {
+            var groupFields = group == null || group == "" ? this.mapping : this.mapping.filter(function (mapping) { return mapping.group == group; });
+            var mappingLength = groupFields.length;
             for (var index = 0; index < mappingLength; index++) {
-                var mappingField = this.mapping[index];
+                var mappingField = groupFields[index];
+                if (mappingField.readOnly)
+                    continue;
                 this.getFieldReader(mappingField.reader).setModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
             }
         };
         ;
-        FieldHelper.prototype.getModel = function () {
-            var mappingLength = this.mapping.length;
+        FieldHelper.prototype.getModel = function (group) {
+            var groupFields = group == null || group == "" ? this.mapping : this.mapping.filter(function (mapping) { return mapping.group == group; });
+            var mappingLength = groupFields.length;
             for (var index = 0; index < mappingLength; index++) {
-                var mappingField = this.mapping[index];
+                var mappingField = groupFields[index];
                 this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
             }
         };
         ;
-        FieldHelper.prototype.clearModel = function () {
-            var mappingLength = this.mapping.length;
+        FieldHelper.prototype.clearModel = function (group) {
+            var groupFields = group == null || group == "" ? this.mapping : this.mapping.filter(function (mapping) { return mapping.group == group; });
+            var mappingLength = groupFields.length;
             for (var index = 0; index < mappingLength; index++) {
-                var mappingField = this.mapping[index];
+                var mappingField = groupFields[index];
                 this.Model[mappingField.modelProperty] = "";
             }
-            this.getModel();
+            this.getModel(group);
+        };
+        ;
+        FieldHelper.prototype.post = function (controller, method, group, successCallback, errorCallback) {
+            this.setModel(group);
+            this.http.post(controller, method, this.Model, successCallback, errorCallback);
         };
         ;
         return FieldHelper;
@@ -230,15 +277,57 @@ var Mvc;
 /// <reference path="../references.ts"/>
 var Mvc;
 (function (Mvc) {
-    var KendoFieldReaderBase = /** @class */ (function () {
-        function KendoFieldReaderBase(componentName) {
-            this.componentName = componentName;
+    var KendoFieldReader = /** @class */ (function () {
+        function KendoFieldReader() {
+            this.componentName = null;
         }
         ;
-        KendoFieldReaderBase.prototype.getModelValue = function (mapping, model, format) {
+        KendoFieldReader.prototype.setComponentName = function (el) {
+            if (kendo == null) {
+                this.componentName = "";
+                return;
+            }
+            if (el == null) {
+                this.componentName = "";
+                return;
+            }
+            if (kendo.widgetInstance(el, kendo.ui) == undefined) {
+                this.componentName = "";
+                return;
+            }
+            var dataRole = el.data("role");
+            switch (dataRole) {
+                case "autocomplete":
+                    this.componentName = "kendoAutoComplete";
+                    break;
+                case "datepicker":
+                    this.componentName = "kendoDatePicker";
+                    break;
+                case "datetimepicker":
+                    this.componentName = "kendoDateTimePicker";
+                    break;
+                case "combobox":
+                    this.componentName = "kendoComboBox";
+                    break;
+                case "dropdownlist":
+                    this.componentName = "kendoDropDownList";
+                    break;
+                case "maskedtextbox":
+                    this.componentName = "kendoMaskedTextBox";
+                    break;
+                case "numerictextbox":
+                    this.componentName = "kendoNumericTextBox";
+                    break;
+            }
+            this.componentName = "";
+        };
+        ;
+        KendoFieldReader.prototype.getModelValue = function (mapping, model, format) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
+            if (this.componentName == null)
+                this.setComponentName(element);
             var kendoElement = element.data(this.componentName);
             if (kendoElement == null)
                 return;
@@ -248,55 +337,21 @@ var Mvc;
             kendoElement.value(value);
         };
         ;
-        KendoFieldReaderBase.prototype.setModelValue = function (mapping, model, format) {
+        KendoFieldReader.prototype.setModelValue = function (mapping, model, format) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
+            if (this.componentName == null)
+                this.setComponentName(element);
             var kendoElement = element.data(this.componentName);
             if (kendoElement == null)
                 return;
             model[mapping.modelProperty] = kendoElement.value();
         };
         ;
-        return KendoFieldReaderBase;
+        return KendoFieldReader;
     }());
-    Mvc.KendoFieldReaderBase = KendoFieldReaderBase;
-})(Mvc || (Mvc = {}));
-/// <reference path="KendoFieldReaderBase.ts"/>
-var Mvc;
-(function (Mvc) {
-    var KendoDatePickerFieldReader = /** @class */ (function (_super) {
-        __extends(KendoDatePickerFieldReader, _super);
-        function KendoDatePickerFieldReader() {
-            return _super.call(this, "kendoDatePicker") || this;
-        }
-        return KendoDatePickerFieldReader;
-    }(Mvc.KendoFieldReaderBase));
-    Mvc.KendoDatePickerFieldReader = KendoDatePickerFieldReader;
-})(Mvc || (Mvc = {}));
-/// <reference path="KendoFieldReaderBase.ts"/>
-var Mvc;
-(function (Mvc) {
-    var KendoDropDownListFieldReader = /** @class */ (function (_super) {
-        __extends(KendoDropDownListFieldReader, _super);
-        function KendoDropDownListFieldReader() {
-            return _super.call(this, "kendoDropDownList") || this;
-        }
-        return KendoDropDownListFieldReader;
-    }(Mvc.KendoFieldReaderBase));
-    Mvc.KendoDropDownListFieldReader = KendoDropDownListFieldReader;
-})(Mvc || (Mvc = {}));
-/// <reference path="KendoFieldReaderBase.ts"/>
-var Mvc;
-(function (Mvc) {
-    var KendoNumericTextBoxFieldReader = /** @class */ (function (_super) {
-        __extends(KendoNumericTextBoxFieldReader, _super);
-        function KendoNumericTextBoxFieldReader() {
-            return _super.call(this, "kendoNumericTextBox") || this;
-        }
-        return KendoNumericTextBoxFieldReader;
-    }(Mvc.KendoFieldReaderBase));
-    Mvc.KendoNumericTextBoxFieldReader = KendoNumericTextBoxFieldReader;
+    Mvc.KendoFieldReader = KendoFieldReader;
 })(Mvc || (Mvc = {}));
 /// <reference path="../IFieldFormatter.ts"/>
 var Mvc;

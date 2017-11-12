@@ -5,7 +5,7 @@
     <script src="date.format.js"></script>
   </head>
   <body>
-    <input type="text" id="textBoxName" data-Property="Name" />
+    <input type="text" id="textBoxName" data-Property="Name" data-group="name" />
     <br />
     <input type="text" id="textBoxEmail" data-Property="Email"/>
     <p>
@@ -15,7 +15,7 @@
       <input type="text" id="textBoxSendDate" data-Property="SendDate" data-formatter="Date" data-format="mmm/yy"/>
     </p>
     <div>
-      <input type="button" value="Enviar" onclick="mvc.setModel();" />
+      <input type="button" value="Enviar" onclick="mvc.setModel('name');" />
     </div>
     <script src="index.js"></script>
   </body>
