@@ -12,8 +12,9 @@ declare namespace Mvc {
         private readers;
         private formatters;
         private http;
+        private group;
         private initializeMapping();
-        constructor(model: any);
+        constructor(model: any, group?: string);
         private getFieldReader(type);
         private getFieldFormatter(format);
         setModel(group?: string): void;

@@ -15,19 +15,22 @@ namespace Mvc {
     private readers : any;
     private formatters : any;
     private http : HttpAjax;
+    private group : string;
 
     private initializeMapping() {
-        var elements = $("[data-Property]");
+        var elements = this.group == null || this.group == ""
+                          ? $("[fh-Property]")
+                          : $("[fh-group]");
         if (elements == null || elements.length == 0) return;
 
         for (var index = 0; index < elements.length; index++) {
           var el = elements[index] as any;
-          var modelProperty = el.attributes["data-property"];
-          var readerProperty = el.attributes["data-reader"];
-          var formatterProperty = el.attributes["data-formatter"];
-          var formatProperty = el.attributes["data-format"];
-          var readOnly = el.attributes["data-readonly"];
-          var group = el.attributes["data-group"];
+          var modelProperty = el.attributes["fh-property"];
+          var readerProperty = el.attributes["fh-reader"];
+          var formatterProperty = el.attributes["fh-formatter"];
+          var formatProperty = el.attributes["fh-format"];
+          var readOnly = el.attributes["fh-readonly"];
+          var group = el.attributes["fh-group"];
           this.mapping.push(new FieldMappingModel({
             fieldId : el.id,
             modelProperty : modelProperty == null ? el.id : modelProperty.value,
@@ -40,13 +43,14 @@ namespace Mvc {
         }
     };
 
-    constructor(model : any) {
+    constructor(model : any, group? : string) {
       this.Model = model;
       if (this.Model == null)
         this.Model = {};
       this.mapping = [];
       this.readers = {};
       this.formatters = {};
+      this.group = group;
       this.initializeMapping();
       this.http = new HttpAjax();
     };

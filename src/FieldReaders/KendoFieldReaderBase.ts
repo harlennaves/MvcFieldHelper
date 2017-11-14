@@ -51,14 +51,15 @@ namespace Mvc {
           this.componentName = "kendoNumericTextBox";
           break;
       }
+      if (this.componentName != null && this.componentName != "")
+        return;
       this.componentName = "";
     };
 
     getModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
-      if (this.componentName == null)
-        this.setComponentName(element);
+      this.setComponentName(element);
       var kendoElement = element.data(this.componentName);
       if (kendoElement == null) return;
       var value = model[mapping.modelProperty];

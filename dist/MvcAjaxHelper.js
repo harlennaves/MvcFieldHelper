@@ -124,28 +124,31 @@ var Mvc;
 var Mvc;
 (function (Mvc) {
     var FieldHelper = /** @class */ (function () {
-        function FieldHelper(model) {
+        function FieldHelper(model, group) {
             this.Model = model;
             if (this.Model == null)
                 this.Model = {};
             this.mapping = [];
             this.readers = {};
             this.formatters = {};
+            this.group = group;
             this.initializeMapping();
             this.http = new Mvc.HttpAjax();
         }
         FieldHelper.prototype.initializeMapping = function () {
-            var elements = $("[data-Property]");
+            var elements = this.group == null || this.group == ""
+                ? $("[fh-Property]")
+                : $("[fh-group]");
             if (elements == null || elements.length == 0)
                 return;
             for (var index = 0; index < elements.length; index++) {
                 var el = elements[index];
-                var modelProperty = el.attributes["data-property"];
-                var readerProperty = el.attributes["data-reader"];
-                var formatterProperty = el.attributes["data-formatter"];
-                var formatProperty = el.attributes["data-format"];
-                var readOnly = el.attributes["data-readonly"];
-                var group = el.attributes["data-group"];
+                var modelProperty = el.attributes["fh-property"];
+                var readerProperty = el.attributes["fh-reader"];
+                var formatterProperty = el.attributes["fh-formatter"];
+                var formatProperty = el.attributes["fh-format"];
+                var readOnly = el.attributes["fh-readonly"];
+                var group = el.attributes["fh-group"];
                 this.mapping.push(new Mvc.FieldMappingModel({
                     fieldId: el.id,
                     modelProperty: modelProperty == null ? el.id : modelProperty.value,
@@ -319,6 +322,8 @@ var Mvc;
                     this.componentName = "kendoNumericTextBox";
                     break;
             }
+            if (this.componentName != null && this.componentName != "")
+                return;
             this.componentName = "";
         };
         ;
@@ -326,8 +331,7 @@ var Mvc;
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
-            if (this.componentName == null)
-                this.setComponentName(element);
+            this.setComponentName(element);
             var kendoElement = element.data(this.componentName);
             if (kendoElement == null)
                 return;
