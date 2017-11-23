@@ -8,5 +8,7 @@ declare namespace Mvc {
         private setComponentName(el);
         getModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter): void;
         setModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter): void;
+        private getObjectValue;
+        private setObjectValue;
     }
 }

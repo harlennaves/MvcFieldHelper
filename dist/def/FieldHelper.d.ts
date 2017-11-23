@@ -11,7 +11,7 @@ declare namespace Mvc {
         private mapping;
         private readers;
         private formatters;
-        private http;
+        http: HttpAjax;
         private group;
         private initializeMapping();
         constructor(model: any, group?: string);

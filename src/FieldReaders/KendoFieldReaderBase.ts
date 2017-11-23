@@ -4,13 +4,13 @@
 
 namespace Mvc {
   export class KendoFieldReader implements IFieldReader {
-    public componentName : string;
+    public componentName: string;
 
     constructor() {
       this.componentName = null;
     };
 
-    private setComponentName(el : any) : void {
+    private setComponentName(el: any): void {
       if (kendo == null) {
         this.componentName = "";
         return;
@@ -28,7 +28,7 @@ namespace Mvc {
 
       var dataRole = el.data("role");
 
-      switch(dataRole) {
+      switch (dataRole) {
         case "autocomplete":
           this.componentName = "kendoAutoComplete";
           break;
@@ -38,16 +38,16 @@ namespace Mvc {
         case "datetimepicker":
           this.componentName = "kendoDateTimePicker";
           break;
-        case "combobox" :
+        case "combobox":
           this.componentName = "kendoComboBox";
           break;
-        case "dropdownlist" :
+        case "dropdownlist":
           this.componentName = "kendoDropDownList";
           break;
-        case "maskedtextbox" :
+        case "maskedtextbox":
           this.componentName = "kendoMaskedTextBox";
           break;
-        case "numerictextbox" :
+        case "numerictextbox":
           this.componentName = "kendoNumericTextBox";
           break;
       }
@@ -56,26 +56,58 @@ namespace Mvc {
       this.componentName = "";
     };
 
-    getModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
+    getModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
       this.setComponentName(element);
       var kendoElement = element.data(this.componentName);
       if (kendoElement == null) return;
-      var value = model[mapping.modelProperty];
+      var value = this.getObjectValue(mapping.modelProperty, model);
       if (format != null)
         value = format.format(value, mapping.formatter == null ? null : mapping.formatter.format);
       kendoElement.value(value);
     };
 
-    setModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
+    setModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
-      if (this.componentName == null)
-        this.setComponentName(element);
+      this.setComponentName(element);
       var kendoElement = element.data(this.componentName);
       if (kendoElement == null) return;
-      model[mapping.modelProperty] = kendoElement.value();
+      this.setObjectValue(mapping.modelProperty, model, kendoElement);
+    };
+
+    private getObjectValue = (fullPropertyName: string, model: any): any => {
+      if (fullPropertyName.indexOf(".") < 0)
+        return model[fullPropertyName];
+
+      var propertyParts = fullPropertyName.split(".");
+      var propertyEval = "model";
+      for (var index = 0; index < propertyParts.length; index++) {
+        propertyEval += "['" + propertyParts[index] + "']";
+        if (index < (propertyParts.length - 1) && eval(propertyEval) == null)
+          return null;
+      }
+      return eval(propertyEval);
+    };
+
+    private setObjectValue = (fullPropertyName: string, model: any, kendoElement: any) => {
+      var objectValue = this.componentName == "kendoDatePicker" || this.componentName == "kendoDateTimePicker"
+        ? kendoElement.value() instanceof Date ? kendoElement.value().toISOString() : kendoElement.value()
+        : kendoElement.value();
+      if (fullPropertyName.indexOf(".") < 0)
+        model[fullPropertyName] = objectValue;
+      else {
+        var propertyParts = fullPropertyName.split(".");
+        var propertyEval = "model";
+        for (var index = 0; index < propertyParts.length; index++) {
+          propertyEval += "['" + propertyParts[index] + "']";
+          if (index < (propertyParts.length - 1) && eval(propertyEval) == null)
+            eval(propertyEval + " = {}");
+        }
+        propertyEval += " = " + (typeof(objectValue) == "string" ? "'" + objectValue + "'" : objectValue);
+        eval(propertyEval);
+      }
     };
   }
 }

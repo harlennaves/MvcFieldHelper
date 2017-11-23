@@ -6,7 +6,12 @@ namespace Mvc {
     private hostBasePath: string;
 
     private initializePath() {
-      if (window.location.pathname == "/") {
+      var pathName = window.location.href.replace(window.location.origin, "");
+      if (pathName.indexOf("#") > 0)
+        pathName = pathName.substring(0, pathName.indexOf("#"));
+      if (pathName.indexOf("?") > 0)
+        pathName = pathName.substring(0, pathName.indexOf("?"));
+      if (pathName == window.location.pathname) {
         this.hostBasePath = "/";
         return;
       }

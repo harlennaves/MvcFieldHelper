@@ -14,7 +14,7 @@ namespace Mvc {
     private mapping: Array<FieldMappingModel>;
     private readers : any;
     private formatters : any;
-    private http : HttpAjax;
+    public http : HttpAjax;
     private group : string;
 
     private initializeMapping() {

@@ -83,7 +83,12 @@ var Mvc;
             this.initializePath();
         }
         HttpAjax.prototype.initializePath = function () {
-            if (window.location.pathname == "/") {
+            var pathName = window.location.href.replace(window.location.origin, "");
+            if (pathName.indexOf("#") > 0)
+                pathName = pathName.substring(0, pathName.indexOf("#"));
+            if (pathName.indexOf("?") > 0)
+                pathName = pathName.substring(0, pathName.indexOf("?"));
+            if (pathName == window.location.pathname) {
                 this.hostBasePath = "/";
                 return;
             }
@@ -282,6 +287,37 @@ var Mvc;
 (function (Mvc) {
     var KendoFieldReader = /** @class */ (function () {
         function KendoFieldReader() {
+            var _this = this;
+            this.getObjectValue = function (fullPropertyName, model) {
+                if (fullPropertyName.indexOf(".") < 0)
+                    return model[fullPropertyName];
+                var propertyParts = fullPropertyName.split(".");
+                var propertyEval = "model";
+                for (var index = 0; index < propertyParts.length; index++) {
+                    propertyEval += "['" + propertyParts[index] + "']";
+                    if (index < (propertyParts.length - 1) && eval(propertyEval) == null)
+                        return null;
+                }
+                return eval(propertyEval);
+            };
+            this.setObjectValue = function (fullPropertyName, model, kendoElement) {
+                var objectValue = _this.componentName == "kendoDatePicker" || _this.componentName == "kendoDateTimePicker"
+                    ? kendoElement.value() instanceof Date ? kendoElement.value().toISOString() : kendoElement.value()
+                    : kendoElement.value();
+                if (fullPropertyName.indexOf(".") < 0)
+                    model[fullPropertyName] = objectValue;
+                else {
+                    var propertyParts = fullPropertyName.split(".");
+                    var propertyEval = "model";
+                    for (var index = 0; index < propertyParts.length; index++) {
+                        propertyEval += "['" + propertyParts[index] + "']";
+                        if (index < (propertyParts.length - 1) && eval(propertyEval) == null)
+                            eval(propertyEval + " = {}");
+                    }
+                    propertyEval += " = " + (typeof (objectValue) == "string" ? "'" + objectValue + "'" : objectValue);
+                    eval(propertyEval);
+                }
+            };
             this.componentName = null;
         }
         ;
@@ -335,7 +371,7 @@ var Mvc;
             var kendoElement = element.data(this.componentName);
             if (kendoElement == null)
                 return;
-            var value = model[mapping.modelProperty];
+            var value = this.getObjectValue(mapping.modelProperty, model);
             if (format != null)
                 value = format.format(value, mapping.formatter == null ? null : mapping.formatter.format);
             kendoElement.value(value);
@@ -345,12 +381,11 @@ var Mvc;
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
-            if (this.componentName == null)
-                this.setComponentName(element);
+            this.setComponentName(element);
             var kendoElement = element.data(this.componentName);
             if (kendoElement == null)
                 return;
-            model[mapping.modelProperty] = kendoElement.value();
+            this.setObjectValue(mapping.modelProperty, model, kendoElement);
         };
         ;
         return KendoFieldReader;
