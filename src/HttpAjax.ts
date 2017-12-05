@@ -11,18 +11,20 @@ namespace Mvc {
         pathName = pathName.substring(0, pathName.indexOf("#"));
       if (pathName.indexOf("?") > 0)
         pathName = pathName.substring(0, pathName.indexOf("?"));
-      if (pathName == window.location.pathname) {
+
+      var pathPieces = pathName.split("/");
+
+      if (pathName == window.location.pathname && pathPieces.length <= 2) {
         this.hostBasePath = "/";
         return;
       }
-      var pathPieces = window.location.pathname.split("/");
 
       if (pathPieces.length < 2) {
         this.hostBasePath = "/";
         return;
       }
 
-      this.hostBasePath = pathPieces[1] + "/";
+      this.hostBasePath = "/" + pathPieces[1] + "/";
     }
 
     constructor() {

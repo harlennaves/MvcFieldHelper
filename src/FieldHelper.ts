@@ -20,7 +20,7 @@ namespace Mvc {
     private initializeMapping() {
         var elements = this.group == null || this.group == ""
                           ? $("[fh-Property]")
-                          : $("[fh-group]");
+                          : $("[fh-group='" + this.group + "']");
         if (elements == null || elements.length == 0) return;
 
         for (var index = 0; index < elements.length; index++) {

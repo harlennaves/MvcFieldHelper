@@ -88,16 +88,16 @@ var Mvc;
                 pathName = pathName.substring(0, pathName.indexOf("#"));
             if (pathName.indexOf("?") > 0)
                 pathName = pathName.substring(0, pathName.indexOf("?"));
-            if (pathName == window.location.pathname) {
+            var pathPieces = pathName.split("/");
+            if (pathName == window.location.pathname && pathPieces.length <= 2) {
                 this.hostBasePath = "/";
                 return;
             }
-            var pathPieces = window.location.pathname.split("/");
             if (pathPieces.length < 2) {
                 this.hostBasePath = "/";
                 return;
             }
-            this.hostBasePath = pathPieces[1] + "/";
+            this.hostBasePath = "/" + pathPieces[1] + "/";
         };
         HttpAjax.prototype.post = function (controller, method, data, successCallback, errorCallback) {
             var token = $('input[name="__RequestVerificationToken"]').val();
@@ -143,7 +143,7 @@ var Mvc;
         FieldHelper.prototype.initializeMapping = function () {
             var elements = this.group == null || this.group == ""
                 ? $("[fh-Property]")
-                : $("[fh-group]");
+                : $("[fh-group='" + this.group + "']");
             if (elements == null || elements.length == 0)
                 return;
             for (var index = 0; index < elements.length; index++) {
@@ -223,6 +223,42 @@ var Mvc;
     }());
     Mvc.FieldHelper = FieldHelper;
     ;
+})(Mvc || (Mvc = {}));
+/// <reference path="../IFieldFormatter.ts"/>
+var Mvc;
+(function (Mvc) {
+    var DateFormatter = /** @class */ (function () {
+        function DateFormatter() {
+            this.defaultFormat = "dd/mm/yyyy";
+        }
+        DateFormatter.prototype.getDate = function (s) {
+            if (s.indexOf("Date") != -1)
+                return new Date(parseFloat(/Date\(([^)]+)\)/.exec(s)[1]));
+            if (s.indexOf("/") != -1) {
+                var dateParts = s.split("/");
+                return new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
+            }
+            return null;
+        };
+        ;
+        DateFormatter.prototype.getValue = function (value) {
+            return this.getDate(value);
+        };
+        DateFormatter.prototype.format = function (value, format) {
+            if (value == null)
+                return "";
+            var date;
+            if (value instanceof Date)
+                date = value;
+            else
+                date = this.getDate(value.toString());
+            if (date == null || !(date instanceof Date))
+                return "";
+            return date.format(format == null ? this.defaultFormat : format);
+        };
+        return DateFormatter;
+    }());
+    Mvc.DateFormatter = DateFormatter;
 })(Mvc || (Mvc = {}));
 /// <reference path="../IFieldReader.ts"/>
 /// <reference path="../FieldMappingModel.ts"/>
@@ -391,40 +427,4 @@ var Mvc;
         return KendoFieldReader;
     }());
     Mvc.KendoFieldReader = KendoFieldReader;
-})(Mvc || (Mvc = {}));
-/// <reference path="../IFieldFormatter.ts"/>
-var Mvc;
-(function (Mvc) {
-    var DateFormatter = /** @class */ (function () {
-        function DateFormatter() {
-            this.defaultFormat = "dd/mm/yyyy";
-        }
-        DateFormatter.prototype.getDate = function (s) {
-            if (s.indexOf("Date") != -1)
-                return new Date(parseFloat(/Date\(([^)]+)\)/.exec(s)[1]));
-            if (s.indexOf("/") != -1) {
-                var dateParts = s.split("/");
-                return new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
-            }
-            return null;
-        };
-        ;
-        DateFormatter.prototype.getValue = function (value) {
-            return this.getDate(value);
-        };
-        DateFormatter.prototype.format = function (value, format) {
-            if (value == null)
-                return "";
-            var date;
-            if (value instanceof Date)
-                date = value;
-            else
-                date = this.getDate(value.toString());
-            if (date == null || !(date instanceof Date))
-                return "";
-            return date.format(format == null ? this.defaultFormat : format);
-        };
-        return DateFormatter;
-    }());
-    Mvc.DateFormatter = DateFormatter;
 })(Mvc || (Mvc = {}));
