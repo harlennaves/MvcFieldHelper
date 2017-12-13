@@ -5,5 +5,7 @@ declare namespace Mvc {
     class InputFieldReader implements IFieldReader {
         getModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter): void;
         setModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter): void;
+        private getObjectValue;
+        private setObjectValue;
     }
 }

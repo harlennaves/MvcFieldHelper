@@ -115,6 +115,18 @@ var Mvc;
             });
         };
         ;
+        HttpAjax.prototype.postJson = function (controller, method, data, successCallback, errorCallback) {
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                success: successCallback,
+                error: errorCallback,
+                url: this.hostBasePath + controller + "/" + method
+            });
+        };
+        ;
         return HttpAjax;
     }());
     Mvc.HttpAjax = HttpAjax;
@@ -224,42 +236,6 @@ var Mvc;
     Mvc.FieldHelper = FieldHelper;
     ;
 })(Mvc || (Mvc = {}));
-/// <reference path="../IFieldFormatter.ts"/>
-var Mvc;
-(function (Mvc) {
-    var DateFormatter = /** @class */ (function () {
-        function DateFormatter() {
-            this.defaultFormat = "dd/mm/yyyy";
-        }
-        DateFormatter.prototype.getDate = function (s) {
-            if (s.indexOf("Date") != -1)
-                return new Date(parseFloat(/Date\(([^)]+)\)/.exec(s)[1]));
-            if (s.indexOf("/") != -1) {
-                var dateParts = s.split("/");
-                return new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
-            }
-            return null;
-        };
-        ;
-        DateFormatter.prototype.getValue = function (value) {
-            return this.getDate(value);
-        };
-        DateFormatter.prototype.format = function (value, format) {
-            if (value == null)
-                return "";
-            var date;
-            if (value instanceof Date)
-                date = value;
-            else
-                date = this.getDate(value.toString());
-            if (date == null || !(date instanceof Date))
-                return "";
-            return date.format(format == null ? this.defaultFormat : format);
-        };
-        return DateFormatter;
-    }());
-    Mvc.DateFormatter = DateFormatter;
-})(Mvc || (Mvc = {}));
 /// <reference path="../IFieldReader.ts"/>
 /// <reference path="../FieldMappingModel.ts"/>
 /// <reference path="../references.ts"/>
@@ -267,21 +243,50 @@ var Mvc;
 (function (Mvc) {
     var CheckBoxFieldReader = /** @class */ (function () {
         function CheckBoxFieldReader() {
+            this.getObjectValue = function (fullPropertyName, model) {
+                if (fullPropertyName.indexOf(".") < 0)
+                    return model[fullPropertyName];
+                var propertyParts = fullPropertyName.split(".");
+                var propertyEval = "model";
+                for (var index = 0; index < propertyParts.length; index++) {
+                    propertyEval += "['" + propertyParts[index] + "']";
+                    if (index < (propertyParts.length - 1) && eval(propertyEval) == null)
+                        return null;
+                }
+                return eval(propertyEval);
+            };
+            this.setObjectValue = function (fullPropertyName, model, element) {
+                var objectValue = element.prop("checked");
+                if (fullPropertyName.indexOf(".") < 0)
+                    model[fullPropertyName] = objectValue;
+                else {
+                    var propertyParts = fullPropertyName.split(".");
+                    var propertyEval = "model";
+                    for (var index = 0; index < propertyParts.length; index++) {
+                        propertyEval += "['" + propertyParts[index] + "']";
+                        if (index < (propertyParts.length - 1) && eval(propertyEval) == null)
+                            eval(propertyEval + " = {}");
+                    }
+                    propertyEval += " = " + (typeof (objectValue) == "string" ? "'" + objectValue + "'" : objectValue);
+                    eval(propertyEval);
+                }
+            };
         }
         CheckBoxFieldReader.prototype.getModelValue = function (mapping, model, format) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
-            if (model[mapping.modelProperty] == null)
+            var value = this.getObjectValue(mapping.modelProperty, model);
+            if (value == null)
                 return;
-            element.prop("checked", model[mapping.modelProperty]);
+            element.prop("checked", value);
         };
         ;
         CheckBoxFieldReader.prototype.setModelValue = function (mapping, model, format) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
-            model[mapping.modelProperty] = element.prop("checked");
+            this.setObjectValue(mapping.modelProperty, model, element);
         };
         return CheckBoxFieldReader;
     }());
@@ -294,14 +299,42 @@ var Mvc;
 (function (Mvc) {
     var InputFieldReader = /** @class */ (function () {
         function InputFieldReader() {
+            this.getObjectValue = function (fullPropertyName, model) {
+                if (fullPropertyName.indexOf(".") < 0)
+                    return model[fullPropertyName];
+                var propertyParts = fullPropertyName.split(".");
+                var propertyEval = "model";
+                for (var index = 0; index < propertyParts.length; index++) {
+                    propertyEval += "['" + propertyParts[index] + "']";
+                    if (index < (propertyParts.length - 1) && eval(propertyEval) == null)
+                        return null;
+                }
+                return eval(propertyEval);
+            };
+            this.setObjectValue = function (fullPropertyName, model, element) {
+                var objectValue = element.val();
+                if (fullPropertyName.indexOf(".") < 0)
+                    model[fullPropertyName] = objectValue;
+                else {
+                    var propertyParts = fullPropertyName.split(".");
+                    var propertyEval = "model";
+                    for (var index = 0; index < propertyParts.length; index++) {
+                        propertyEval += "['" + propertyParts[index] + "']";
+                        if (index < (propertyParts.length - 1) && eval(propertyEval) == null)
+                            eval(propertyEval + " = {}");
+                    }
+                    propertyEval += " = " + (typeof (objectValue) == "string" ? "'" + objectValue + "'" : objectValue);
+                    eval(propertyEval);
+                }
+            };
         }
         InputFieldReader.prototype.getModelValue = function (mapping, model, format) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
-            if (model[mapping.modelProperty] == null)
+            var value = this.getObjectValue(mapping.modelProperty, model);
+            if (value == null)
                 return;
-            var value = model[mapping.modelProperty];
             element.val(format == null ? value : format.format(value, mapping.formatter == null ? null : mapping.formatter.format));
         };
         ;
@@ -309,7 +342,7 @@ var Mvc;
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
-            model[mapping.modelProperty] = format == null ? element.val() : format.getValue(element.val());
+            this.setObjectValue(mapping.modelProperty, model, element);
         };
         return InputFieldReader;
     }());
@@ -427,4 +460,40 @@ var Mvc;
         return KendoFieldReader;
     }());
     Mvc.KendoFieldReader = KendoFieldReader;
+})(Mvc || (Mvc = {}));
+/// <reference path="../IFieldFormatter.ts"/>
+var Mvc;
+(function (Mvc) {
+    var DateFormatter = /** @class */ (function () {
+        function DateFormatter() {
+            this.defaultFormat = "dd/mm/yyyy";
+        }
+        DateFormatter.prototype.getDate = function (s) {
+            if (s.indexOf("Date") != -1)
+                return new Date(parseFloat(/Date\(([^)]+)\)/.exec(s)[1]));
+            if (s.indexOf("/") != -1) {
+                var dateParts = s.split("/");
+                return new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0]));
+            }
+            return null;
+        };
+        ;
+        DateFormatter.prototype.getValue = function (value) {
+            return this.getDate(value);
+        };
+        DateFormatter.prototype.format = function (value, format) {
+            if (value == null)
+                return "";
+            var date;
+            if (value instanceof Date)
+                date = value;
+            else
+                date = this.getDate(value.toString());
+            if (date == null || !(date instanceof Date))
+                return "";
+            return date.format(format == null ? this.defaultFormat : format);
+        };
+        return DateFormatter;
+    }());
+    Mvc.DateFormatter = DateFormatter;
 })(Mvc || (Mvc = {}));

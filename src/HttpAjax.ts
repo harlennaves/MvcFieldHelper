@@ -47,5 +47,17 @@ namespace Mvc {
       })
     };
 
+    postJson(controller : string, method : string, data: any, successCallback: (response: any) => void, errorCallback: (response: any) => void): void {
+      $.ajax({
+        type: "POST",
+        dataType: "json",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        success: successCallback,
+        error: errorCallback,
+        url : this.hostBasePath + controller + "/" + method
+      })
+    };
+
   }
 }

@@ -5,5 +5,6 @@ declare namespace Mvc {
         private initializePath();
         constructor();
         post(controller: string, method: string, data: any, successCallback: (response: any) => void, errorCallback: (response: any) => void): void;
+        postJson(controller: string, method: string, data: any, successCallback: (response: any) => void, errorCallback: (response: any) => void): void;
     }
 }
