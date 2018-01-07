@@ -56,9 +56,10 @@ namespace Mvc {
       this.componentName = "";
     };
 
-    getModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter) {
+    getModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter, role : string) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
+      FieldPermission.setPropertyByPermission(element, role, mapping.permissions, model);
       this.setComponentName(element);
       var kendoElement = element.data(this.componentName);
       if (kendoElement == null) return;
@@ -66,6 +67,7 @@ namespace Mvc {
       if (format != null)
         value = format.format(value, mapping.formatter == null ? null : mapping.formatter.format);
       kendoElement.value(value);
+
     };
 
     setModelValue(mapping: FieldMappingModel, model: any, format: IFieldFormatter) {

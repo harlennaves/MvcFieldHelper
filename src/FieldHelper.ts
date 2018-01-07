@@ -16,6 +16,7 @@ namespace Mvc {
     private formatters : any;
     public http : HttpAjax;
     private group : string;
+    private role : string;
 
     private initializeMapping() {
         var elements = this.group == null || this.group == ""
@@ -31,6 +32,7 @@ namespace Mvc {
           var formatProperty = el.attributes["fh-format"];
           var readOnly = el.attributes["fh-readonly"];
           var group = el.attributes["fh-group"];
+          var permissions = el.attributes["fh-permissions"];
           this.mapping.push(new FieldMappingModel({
             fieldId : el.id,
             modelProperty : modelProperty == null ? el.id : modelProperty.value,
@@ -38,12 +40,13 @@ namespace Mvc {
             formatter : formatterProperty == null ? null : formatterProperty.value,
             format : formatProperty == null ? null : formatProperty.value,
             readOnly : readOnly == null ? false : readOnly.value,
-            group : group == null ? null :group.value
+            group : group == null ? null :group.value,
+            permissions : permissions == null ? null : permissions.value
           }));
         }
     };
 
-    constructor(model : any, group? : string) {
+    constructor(model : any, group? : string, role? : string) {
       this.Model = model;
       if (this.Model == null)
         this.Model = {};
@@ -51,6 +54,7 @@ namespace Mvc {
       this.readers = {};
       this.formatters = {};
       this.group = group;
+      this.role = role;
       this.initializeMapping();
       this.http = new HttpAjax();
     };
@@ -72,6 +76,9 @@ namespace Mvc {
       return this.formatters[typeName] as IFieldFormatter;
     };
 
+    setRole(role : string) {
+      this.role = role;
+    };
 
     setModel(group? : string) {
       var groupFields = group == null || group == "" ? this.mapping : this.mapping.filter(mapping => mapping.group == group);
@@ -88,7 +95,7 @@ namespace Mvc {
       var mappingLength = groupFields.length;
       for (var index = 0; index < mappingLength; index++) {
         var mappingField = groupFields[index];
-        this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
+        this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter), this.role);
       }
     };
 

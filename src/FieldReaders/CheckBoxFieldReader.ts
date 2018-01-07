@@ -4,13 +4,15 @@
 
 namespace Mvc {
   export class CheckBoxFieldReader implements IFieldReader {
-    getModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
+    getModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter, role : string) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
+      FieldPermission.setPropertyByPermission(element, role, mapping.permissions, model);
       var value = this.getObjectValue(mapping.modelProperty, model);
       if (value == null) return;
 
       element.prop("checked", value);
+
     };
 
     setModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {

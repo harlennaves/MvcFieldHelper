@@ -1,6 +1,7 @@
 /// <reference path="IFieldReader.ts"/>
 /// <reference path="FieldReaderType.ts"/>
 /// <reference path="FieldFormatModel.ts"/>
+/// <reference path="FieldPermission.ts"/>
 
 namespace Mvc {
   export class FieldMappingModel {
@@ -11,6 +12,7 @@ namespace Mvc {
     public formatter : FieldFormatModel;
     public readOnly : boolean;
     public group : string;
+    public permissions : Array<FieldPermission>;
 
     constructor(model : any) {
         this.fieldId = model.fieldId;
@@ -36,6 +38,10 @@ namespace Mvc {
 
         if (model.group != null)
           this.group = model.group;
+
+        if (model.permissions != null) {
+          this.permissions = FieldPermission.LoadPermissions(model.permissions);
+        }
     };
   };
 }

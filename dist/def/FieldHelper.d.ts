@@ -13,10 +13,12 @@ declare namespace Mvc {
         private formatters;
         http: HttpAjax;
         private group;
+        private role;
         private initializeMapping();
-        constructor(model: any, group?: string);
+        constructor(model: any, group?: string, role?: string);
         private getFieldReader(type);
         private getFieldFormatter(format);
+        setRole(role: string): void;
         setModel(group?: string): void;
         getModel(group?: string): void;
         clearModel(group?: string): void;

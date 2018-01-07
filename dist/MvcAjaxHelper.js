@@ -36,9 +36,81 @@ var Mvc;
     })(FieldReaderType = Mvc.FieldReaderType || (Mvc.FieldReaderType = {}));
     ;
 })(Mvc || (Mvc = {}));
+var Mvc;
+(function (Mvc) {
+    var FieldPermission = /** @class */ (function () {
+        function FieldPermission(model) {
+            if (model == null)
+                throw new Error("model cannot be null");
+            if (model.role == null)
+                throw new Error("role cannot be null");
+            this.role = model.role;
+            if (model.visibility == null)
+                this.visibility = "visible";
+            this.visibility = this.CheckVisibility(model.visibility);
+            if (model.action != null)
+                this.action = eval(model.action);
+        }
+        FieldPermission.prototype.CheckVisibility = function (visibility) {
+            switch (visibility) {
+                case "visible":
+                    return "visible";
+                case "hidden":
+                    return "hidden";
+                case "readonly":
+                    return "readonly";
+                default:
+                    return "visible";
+            }
+        };
+        ;
+        FieldPermission.LoadPermissions = function (plainPermissions) {
+            var permissions = new Array();
+            //'[{"role": "admin", "visibility": "hidden"}, {"role": "sys" , "visibility": "readonly"}]'
+            try {
+                permissions = JSON.parse(plainPermissions);
+            }
+            catch (e) {
+            }
+            return permissions;
+        };
+        ;
+        FieldPermission.setPropertyByPermission = function (element, role, permissions, model) {
+            if (element == null || role == null || role == '' || permissions == null || permissions.length == 0)
+                return;
+            var matched = $.grep(permissions, function (permission) {
+                return permission.role == role;
+            });
+            if (matched.length != 1)
+                return;
+            var permission = matched[0];
+            if (permission == null)
+                return;
+            switch (permission.visibility) {
+                case "readonly":
+                    element.prop("readonly", true);
+                    break;
+                case "hidden":
+                    element.hide();
+                    break;
+                case "visible":
+                    element.show();
+                    break;
+            }
+            if (permission.action != null)
+                eval(permission.action.toString())(element, model);
+        };
+        ;
+        ;
+        return FieldPermission;
+    }());
+    Mvc.FieldPermission = FieldPermission;
+    ;
+})(Mvc || (Mvc = {}));
 /// <reference path="IFieldReader.ts"/>
 /// <reference path="FieldReaderType.ts"/>
 /// <reference path="FieldFormatModel.ts"/>
+/// <reference path="FieldPermission.ts"/>
 var Mvc;
 (function (Mvc) {
     var FieldMappingModel = /** @class */ (function () {
@@ -62,6 +134,9 @@ var Mvc;
                 this.readOnly = model.readOnly;
             if (model.group != null)
                 this.group = model.group;
+            if (model.permissions != null) {
+                this.permissions = Mvc.FieldPermission.LoadPermissions(model.permissions);
+            }
         }
         ;
         return FieldMappingModel;
@@ -141,7 +216,7 @@ var Mvc;
 var Mvc;
 (function (Mvc) {
     var FieldHelper = /** @class */ (function () {
-        function FieldHelper(model, group) {
+        function FieldHelper(model, group, role) {
             this.Model = model;
             if (this.Model == null)
                 this.Model = {};
@@ -149,6 +224,7 @@ var Mvc;
             this.readers = {};
             this.formatters = {};
             this.group = group;
+            this.role = role;
             this.initializeMapping();
             this.http = new Mvc.HttpAjax();
         }
@@ -166,6 +242,7 @@ var Mvc;
                 var formatProperty = el.attributes["fh-format"];
                 var readOnly = el.attributes["fh-readonly"];
                 var group = el.attributes["fh-group"];
+                var permissions = el.attributes["fh-permissions"];
                 this.mapping.push(new Mvc.FieldMappingModel({
                     fieldId: el.id,
                     modelProperty: modelProperty == null ? el.id : modelProperty.value,
@@ -173,7 +250,8 @@ var Mvc;
                     formatter: formatterProperty == null ? null : formatterProperty.value,
                     format: formatProperty == null ? null : formatProperty.value,
                     readOnly: readOnly == null ? false : readOnly.value,
-                    group: group == null ? null : group.value
+                    group: group == null ? null : group.value,
+                    permissions: permissions == null ? null : permissions.value
                 }));
             }
         };
@@ -196,6 +274,10 @@ var Mvc;
             return this.formatters[typeName];
         };
         ;
+        FieldHelper.prototype.setRole = function (role) {
+            this.role = role;
+        };
+        ;
         FieldHelper.prototype.setModel = function (group) {
             var groupFields = group == null || group == "" ? this.mapping : this.mapping.filter(function (mapping) { return mapping.group == group; });
             var mappingLength = groupFields.length;
@@ -212,7 +294,7 @@ var Mvc;
             var mappingLength = groupFields.length;
             for (var index = 0; index < mappingLength; index++) {
                 var mappingField = groupFields[index];
-                this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter));
+                this.getFieldReader(mappingField.reader).getModelValue(mappingField, this.Model, this.getFieldFormatter(mappingField.formatter), this.role);
             }
         };
         ;
@@ -272,10 +354,11 @@ var Mvc;
                 }
             };
         }
-        CheckBoxFieldReader.prototype.getModelValue = function (mapping, model, format) {
+        CheckBoxFieldReader.prototype.getModelValue = function (mapping, model, format, role) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
+            Mvc.FieldPermission.setPropertyByPermission(element, role, mapping.permissions, model);
             var value = this.getObjectValue(mapping.modelProperty, model);
             if (value == null)
                 return;
@@ -328,10 +411,11 @@ var Mvc;
                 }
             };
         }
-        InputFieldReader.prototype.getModelValue = function (mapping, model, format) {
+        InputFieldReader.prototype.getModelValue = function (mapping, model, format, role) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
+            Mvc.FieldPermission.setPropertyByPermission(element, role, mapping.permissions, model);
             var value = this.getObjectValue(mapping.modelProperty, model);
             if (value == null)
                 return;
@@ -432,10 +516,11 @@ var Mvc;
             this.componentName = "";
         };
         ;
-        KendoFieldReader.prototype.getModelValue = function (mapping, model, format) {
+        KendoFieldReader.prototype.getModelValue = function (mapping, model, format, role) {
             var element = $("#" + mapping.fieldId);
             if (element == null)
                 return;
+            Mvc.FieldPermission.setPropertyByPermission(element, role, mapping.permissions, model);
             this.setComponentName(element);
             var kendoElement = element.data(this.componentName);
             if (kendoElement == null)

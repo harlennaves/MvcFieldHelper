@@ -5,13 +5,15 @@
 namespace Mvc {
 
   export class InputFieldReader implements IFieldReader {
-    getModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
+    getModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter, role : string) {
       var element = $("#" + mapping.fieldId);
       if (element == null) return;
-
+      FieldPermission.setPropertyByPermission(element, role, mapping.permissions, model);
       var value = this.getObjectValue(mapping.modelProperty, model);
       if (value == null) return;
       element.val(format == null ? value : format.format(value, mapping.formatter == null ? null : mapping.formatter.format));
+
+
     };
 
     setModelValue(mapping: FieldMappingModel, model: any, format : IFieldFormatter) {
